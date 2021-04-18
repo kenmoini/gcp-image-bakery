@@ -51,6 +51,8 @@
         - auto_delete: 'true'
           boot: 'true'
           source: "{{ disk }}"
+        metadata:
+          enable-oslogin: TRUE
         network_interfaces:
         - network: "{{ network }}"
           access_configs:
@@ -58,7 +60,8 @@
             nat_ip: "{{ address }}"
             type: ONE_TO_ONE_NAT
         tags:
-        - eph-image-bakery
+          items:
+            - eph-image-bakery
         zone: "{{ gcp_zone }}"
         project: "{{ gcp_project }}"
         auth_kind: "{{ gcp_cred_kind }}"
