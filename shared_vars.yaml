@@ -1,0 +1,11 @@
+gcp_project: gcp-rhel-gold-image-bakery
+gcp_cred_kind: serviceaccount
+service_account_file: gcp-creds.json
+disk_name: eph-bakery-disk
+vpc_name: eph-bakery-vpc
+static_ip_name: eph-bakery-ip
+vm_name: eph-bakery-vm
+firewall_name: eph-bakery-fw
+
+gcp_zone: us-central1-a
+gcp_region: us-central1

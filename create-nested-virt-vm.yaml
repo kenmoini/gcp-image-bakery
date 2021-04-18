@@ -1,17 +1,19 @@
 ---
 - name: Create a VM in GCP with Nested Virtualization enabled
   hosts: localhost
-  vars:
-    gcp_project: gcp-rhel-gold-image-bakery
-    gcp_cred_kind: serviceaccount
-    service_account_file: gcp-creds.json
   tasks:
+
+    - name: Include skared vars
+      include_vars: shared_vars.yaml
+
     - name: Create a disk mapped from RHEL8 image
       gcp_compute_disk:
-        name: disk-instance
-        size_gb: 50
+        name: "{{ disk_name }}"
+        licenses:
+          - https://compute.googleapis.com/compute/v1/projects/vm-options/global/licenses/enable-vmx
+        size_gb: 80
         source_image: projects/rhel-cloud/global/images/rhel-8-v20190905
-        zone: us-central1-a
+        zone: "{{ gcp_zone }}"
         project: "{{ gcp_project }}"
         auth_kind: "{{ gcp_cred_kind }}"
         service_account_file: "{{ service_account_file }}"
@@ -20,17 +22,20 @@
 
     - name: Create a VPC network
       gcp_compute_network:
-        name: network-instance
+        name: "{{ vpc_name }}"
         project: "{{ gcp_project }}"
         auth_kind: "{{ gcp_cred_kind }}"
+        auto_create_subnetworks: true
+        routing_config:
+          routing_mode: GLOBAL
         service_account_file: "{{ service_account_file }}"
         state: present
       register: network
 
     - name: Create an IPv4 public IP Address
       gcp_compute_address:
-        name: address-instance
-        region: us-central1
+        name: "{{ static_ip_name }}"
+        region: "{{ gcp_region }}"
         project: "{{ gcp_project }}"
         auth_kind: "{{ gcp_cred_kind }}"
         service_account_file: "{{ service_account_file }}"
@@ -39,7 +44,8 @@
 
     - name: Create the RHEL8 instance
       gcp_compute_instance:
-        name: rhel8
+        name: "{{ vm_name }}"
+        min_cpu_platform: Intel Haswell
         machine_type: n1-standard-1
         disks:
         - auto_delete: 'true'
@@ -51,7 +57,25 @@
           - name: External NAT
             nat_ip: "{{ address }}"
             type: ONE_TO_ONE_NAT
-        zone: us-central1-a
+        tags:
+        - eph-image-bakery
+        zone: "{{ gcp_zone }}"
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        service_account_file: "{{ service_account_file }}"
+        state: present
+
+    - name: Create a firewall
+      google.cloud.gcp_compute_firewall:
+        name: "{{ firewall_name }}"
+        allowed:
+        - ip_protocol: tcp
+          ports:
+          - '22'
+        target_tags:
+        - eph-image-bakery
+        source_ranges:
+        - "0.0.0.0/0"
         project: "{{ gcp_project }}"
         auth_kind: "{{ gcp_cred_kind }}"
         service_account_file: "{{ service_account_file }}"
