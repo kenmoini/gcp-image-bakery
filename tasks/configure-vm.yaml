@@ -8,3 +8,9 @@
   dnf:
     name: ['libguestfs', 'libguestfs-tools']
     state: latest
+
+# Needed by the Ansible collection for messing with Storage Buckets
+#- name: Install google-cloud-storage Python package
+#  pip:
+#    name: google-cloud-storage
+#    executable: pip3

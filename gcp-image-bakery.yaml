@@ -3,11 +3,10 @@
   hosts: localhost
   tasks:
 
-    - name: Include shared vars
-      include_vars: shared_vars.yaml
-
     - name: Create the VM
       include_tasks: tasks/create-vm.yaml
+      tags:
+        - vm_setup
 
 - name: Bake up an image
   hosts: new_instances
@@ -16,3 +15,19 @@
 
     - name: Configure the VM
       include_tasks: tasks/configure-vm.yaml
+      tags:
+        - vm_configure
+
+    - name: Bake RHEL Image
+      include_tasks: tasks/rhsm-api.yaml
+      tags:
+        - rhsm_api
+
+- name: Clean up
+  hosts: localhost
+  tasks:
+
+    - name: Delete the VM
+      include_tasks: tasks/create-vm.yaml
+      tags:
+        - vm_destroy

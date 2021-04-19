@@ -1,13 +1,14 @@
 gcp_project: gcp-rhel-gold-image-bakery
 gcp_cred_kind: serviceaccount
 service_account_file: gcp-creds.json
+gcp_target_bucket: rhel-gold-images-v2021
 
 rhsm_api_offline_token: YourOfflineToken
 
 # Find images by running `gcloud compute images | grep 'rhel'`
 image_base: projects/rhel-cloud/global/images/rhel-8-v20210316
 
-#### Probably don't need to edit these vars
+#### Probably don't need to edit these vars down here
 
 gcp_zone: us-central1-a
 gcp_region: us-central1

@@ -1,0 +1,61 @@
+---
+
+- name: Delete the firewall
+  google.cloud.gcp_compute_firewall:
+    name: "{{ firewall_name }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_cred_kind }}"
+    service_account_file: "{{ service_account_file }}"
+    state: absent
+
+- name: Delete the RHEL8 instance
+  gcp_compute_instance:
+    name: "{{ vm_name }}"
+    zone: "{{ gcp_zone }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_cred_kind }}"
+    service_account_file: "{{ service_account_file }}"
+    state: absent
+
+- name: Delete the IPv4 public IP Address
+  gcp_compute_address:
+    name: "{{ static_ip_name }}"
+    region: "{{ gcp_region }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_cred_kind }}"
+    service_account_file: "{{ service_account_file }}"
+    state: absent
+
+- name: Delete the disk mapped from RHEL8 image
+  gcp_compute_disk:
+    name: "{{ disk_name }}"
+    zone: "{{ gcp_zone }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_cred_kind }}"
+    service_account_file: "{{ service_account_file }}"
+    state: absent
+
+- name: Delete the subnetwork
+  google.cloud.gcp_compute_subnetwork:
+    name: "{{ vpc_name }}-subnet"
+    region: "{{ gcp_region }}"
+    network:
+      selfLink: "projects/{{ gcp_project }}/regions/{{ gcp_region }}/networks/{{ vpc_name }}"
+    ip_cidr_range: "{{ subnet_cidr }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_cred_kind }}"
+    service_account_file: "{{ service_account_file }}"
+    state: absent
+
+- name: Delete the VPC network
+  gcp_compute_network:
+    name: "{{ vpc_name }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_cred_kind }}"
+    service_account_file: "{{ service_account_file }}"
+    state: absent
+
+- name: Delete temporary directory
+  file:
+    state: absent
+    path: "{{ temporary_path }}"

@@ -23,20 +23,80 @@
   delay: 10
   ignore_errors: true
 
-- name: debug
-  debug:
-    msg: "{{ content_set_image_list|json_query(imageLink) }}"
+- name: Download the latest RHEL 8 KVM Guest Image
+  get_url:
+    url: "{{ content_set_image_list.json.body| json_query(imageLink) | first }}"
+    dest: "/opt/{{ content_set_image_list.json.body| json_query(imageFileName) | first }}"
+    headers:
+      Authorization: "Bearer {{ rh_sso_reg.json.access_token }}"
   vars:
     imageLink: >-
-      [].body[?imageName=='Red Hat Enterprise Linux 8.3 Boot ISO'].downloadHref
+      [?imageName=='Red Hat Enterprise Linux 8.3 Update KVM Guest Image'].downloadHref
+    imageFileName: >-
+      [?imageName=='Red Hat Enterprise Linux 8.3 Update KVM Guest Image'].filename
 
+- name: Convert the QCOW2 to a RAW image
+  command:
+    cmd: "qemu-img convert -f qcow2 -O raw /opt/{{ content_set_image_list.json.body| json_query(imageFileName) | first }} /opt/disk.raw"
+    creates: "/opt/disk.raw"
+  vars:
+    imageFileName: >-
+      [?imageName=='Red Hat Enterprise Linux 8.3 Update KVM Guest Image'].filename
 
-#- name: Download the latest RHEL 8 Image
-#  get_url:
-#    url: "{{ content_set_image_list|json_query(imageLink) }}"
-#    dest: /etc/foo.conf
-#    headers:
-#      Authorization: "Bearer {{ rh_sso_reg.json.access_token }}"
-#  vars:
-#    imageLink: >-
-#      [].body[?imageName=='Red Hat Enterprise Linux 8.3 Boot ISO'].downloadHref
+- name: Compress RAW Image
+  command:
+    cmd: "tar --format=oldgnu -Sczf disk.raw.tar.gz disk.raw"
+    creates: "/opt/disk.raw.tar.gz"
+    chdir: /opt
+
+- name: Download the latest Google Cloud SDK Installer
+  get_url:
+    url: https://sdk.cloud.google.com
+    dest: "/opt/gcloud-install.sh"
+
+- name: Run gcloud install
+  command:
+    cmd: bash /opt/gcloud-install.sh --disable-prompts --install-dir=/opt
+    creates: /opt/google-cloud-sdk/
+
+- name: Copy over Google Cloud Service Account JSON file
+  copy:
+    src: "{{ service_account_file }}"
+    dest: /opt/google-cloud-sdk/gcloud-creds.json
+
+- name: Set up gcloud auth
+  command:
+    cmd: gcloud auth activate-service-account --key-file=/opt/google-cloud-sdk/gcloud-creds.json
+    creates: /root/.config/gcloud/credentials.db
+
+- name: Copy image to GCP Storage Bucket
+  command:
+    cmd: "/opt/google-cloud-sdk/bin/gsutil cp /opt/disk.raw.tar.gz gs://{{ gcp_target_bucket }}"
+
+- name: Create the VM Disk Image
+  comand:
+    cmd: "gcloud compute images create {{ content_set_image_list.json.body| json_query(imageFileName) | first | replace('qcow', '') }} --source-uri gs://{{ gcp_target_bucket }}/disk.raw.tar.gz"
+  vars:
+    imageFileName: >-
+      [?imageName=='Red Hat Enterprise Linux 8.3 Update KVM Guest Image'].filename
+
+#- name: Create new VM Image
+#  google.cloud.gcp_compute_image:
+#    name: rhel8-gold-image
+#    raw_disk:
+#      source: "https://storage.googleapis.com/{{ gcp_target_bucket }}/disk.raw.tar.gz"
+#      #source: "gs://{{ gcp_target_bucket }}/disk.raw.tar.gz"
+#    project: "{{ gcp_project }}"
+#    auth_kind: "{{ gcp_cred_kind }}"
+#    service_account_file: /opt/google-cloud-sdk/gcloud-creds.json
+#    state: present
+#
+#- name: Upload compressed raw disk image to GCP Storage Bucket
+#  google.cloud.gcp_storage_object:
+#    action: upload
+#    bucket: "{{ gcp_target_bucket }}"
+#    src: /opt/disk.raw.tar.gz
+#    dest: "disk.raw.tar.gz"
+#    project: "{{ gcp_project }}"
+#    auth_kind: "{{ gcp_cred_kind }}"
+#    service_account_file: /opt/google-cloud-sdk/gcloud-creds.json
