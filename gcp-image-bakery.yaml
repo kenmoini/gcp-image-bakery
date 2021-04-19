@@ -11,6 +11,7 @@
 
 - name: Bake up an image
   hosts: new_instances
+  become: yes
   tasks:
 
     - name: Configure the VM
