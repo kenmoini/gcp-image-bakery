@@ -82,7 +82,7 @@
   gcp_compute_instance:
     name: "{{ vm_name }}"
     min_cpu_platform: Intel Haswell
-    machine_type: n1-standard-1
+    machine_type: "{{ vm_size }}"
     disks:
     - auto_delete: 'true'
       boot: 'true'
@@ -109,6 +109,7 @@
     service_account_file: "{{ service_account_file }}"
     state: present
 
+# Have a delay of at least 30s - need to wait for the Login service to start
 - name: Wait for SSH to come up
   wait_for: host={{ address.address }} port=22 delay=30 timeout=120
 

@@ -16,16 +16,26 @@ By default, the `service_account_file` var looks for `./gcp-creds.json` - altern
 
 ### 3. Set variables
 
-Modify the `shared_vars.yaml` file as needed for project and so on.
+Modify the `shared_vars.yaml.example` file as needed and copy to `shared_vars.yaml`.
+
+Something to keep an eye on is the RHEL image base - it is updated from time to time and there is no easy way to automatically get the latest image name.  You'll want to run `gcloud compute images | grep 'rhel'` to ensure you are using the latest image.
+
+### 4. Pull in Collections
+
+In case you don't already have the collections on your system, you can load them all with the following command:
+
+```bash
+ansible-galaxy install -r collections/requirements.yml
+```
 
 ## Creating the RHEL Gold Image
 
 ```bash
-ansible-playbook gcp-image-bakery.yaml
+ansible-playbook -e "@shared_vars.yaml" gcp-image-bakery.yaml
 ```
 
 ## Delete the Bakery
 
 ```bash
-ansible-playbook destroy-nested-virt-vm.yaml
+ansible-playbook -e "@shared_vars.yaml" destroy-nested-virt-vm.yaml
 ```

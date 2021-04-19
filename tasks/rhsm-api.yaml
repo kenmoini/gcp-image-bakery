@@ -1,0 +1,42 @@
+---
+
+- name: Log into RH SSO API
+  uri:
+    url: https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+    body_format: form-urlencoded
+    method: POST
+    body:
+      grant_type: refresh_token
+      client_id: rhsm-api
+      refresh_token: "{{ rhsm_api_offline_token }}"
+  register: rh_sso_reg
+      
+- name: Get list of images in Content Set for RHEL 8
+  uri:
+    url: https://api.access.redhat.com/management/v1/images/cset/rhel-8-for-x86_64-baseos-isos
+    status_code: 200
+    headers:
+      Authorization: "Bearer {{ rh_sso_reg.json.access_token }}"
+  register: content_set_image_list
+  until: content_set_image_list.status == 200
+  retries: 10
+  delay: 10
+  ignore_errors: true
+
+- name: debug
+  debug:
+    msg: "{{ content_set_image_list|json_query(imageLink) }}"
+  vars:
+    imageLink: >-
+      [].body[?imageName=='Red Hat Enterprise Linux 8.3 Boot ISO'].downloadHref
+
+
+#- name: Download the latest RHEL 8 Image
+#  get_url:
+#    url: "{{ content_set_image_list|json_query(imageLink) }}"
+#    dest: /etc/foo.conf
+#    headers:
+#      Authorization: "Bearer {{ rh_sso_reg.json.access_token }}"
+#  vars:
+#    imageLink: >-
+#      [].body[?imageName=='Red Hat Enterprise Linux 8.3 Boot ISO'].downloadHref
