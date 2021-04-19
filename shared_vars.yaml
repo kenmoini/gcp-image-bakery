@@ -2,6 +2,9 @@ gcp_project: gcp-rhel-gold-image-bakery
 gcp_cred_kind: serviceaccount
 service_account_file: gcp-creds.json
 
+gcp_zone: us-central1-a
+gcp_region: us-central1
+
 disk_name: eph-bakery-disk
 vpc_name: eph-bakery-vpc
 static_ip_name: eph-bakery-ip
@@ -11,5 +14,6 @@ firewall_name: eph-bakery-fw
 # Find images by running `gcloud compute images | grep 'rhel'`
 image_base: projects/rhel-cloud/global/images/rhel-8-v20210316
 
-gcp_zone: us-central1-a
-gcp_region: us-central1
+temporary_path: /tmp/.gcp-bakery
+
+subnet_cidr: 172.16.0.0/16

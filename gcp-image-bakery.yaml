@@ -1,0 +1,17 @@
+---
+- name: Create a RHEL Gold Image for GCP, in GCP!
+  hosts: localhost
+  tasks:
+
+    - name: Include shared vars
+      include_vars: shared_vars.yaml
+
+    - name: Create the VM
+      include_tasks: tasks/create-vm.yaml
+
+- name: Bake up an image
+  hosts: new_instances
+  tasks:
+
+    - name: Configure the VM
+      include_tasks: tasks/configure-vm.yaml

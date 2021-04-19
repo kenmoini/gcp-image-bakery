@@ -1,0 +1,10 @@
+---
+- name: Update the system
+  dnf:
+    name: '*'
+    state: latest
+
+- name: Install base packages
+  dnf:
+    name: ['libguestfs', 'libguestfs-tools']
+    state: latest
