@@ -6,13 +6,13 @@ This repository uses GCP to create a RHEL Gold Image and deposits it into GCP - 
 
 ## Prerequiste Setup
 
-### 1. Create a ServiceAccount and JSON key
+### 1. Create a GCP IAM Service Account and JSON key
 
 This is pretty easy to do in GCP.. IAM > Service Accounts > Create, give it a name and permissions, then create a Key, JSON type, it'll download.
 
 ### 2. Copy JSON to local directory
 
-By default, the `service_account_file` var looks for `./gcp-creds.json` - alternatively, set the var to wherever you have it already downloaded.
+By default, the `service_account_file` variable looks for `./gcp-creds.json` - alternatively, set the var to wherever you have it already downloaded.
 
 ### 3. Set variables
 
@@ -27,6 +27,7 @@ In case you don't already have the collections on your system, you can load them
 ```bash
 ansible-galaxy install -r collections/requirements.yml
 ```
+---
 
 ## Creating the RHEL Gold Image
 
@@ -39,3 +40,12 @@ ansible-playbook -e "@shared_vars.yaml" gcp-image-bakery.yaml
 ```bash
 ansible-playbook -e "@shared_vars.yaml" destroy-nested-virt-vm.yaml
 ```
+
+## Available Tags
+
+- `vm_configure` - Safe to skip on subsequent runs of the playbook, targets package management
+- `wait_for_ssh` - Safe to skip on subsequent runs of the playbook once the VM has been stood up
+- `vm_destroy` - Safe to skip if you want to keep the Bakery VM and associated VPC resources online
+- `vm_setup` - This needs to be run or else the `bakery_instance` group isn't made which the following Plays rely on
+- `rhsm_api` - This interacts with the Red Hat Subscription Manager API and downloads the RHEL image
+- `bake_image` - The tasks tagged with this will take the Gold Image on the Bakery VM and create the VM Disk Image in GCP

@@ -4,30 +4,35 @@
   tasks:
 
     - name: Create the VM
-      include_tasks: tasks/create-vm.yaml
+      include_tasks: tasks/create-bakery-vm.yaml
       tags:
         - vm_setup
 
 - name: Bake up an image
-  hosts: new_instances
+  hosts: bakery_instance
   become: yes
   tasks:
 
     - name: Configure the VM
-      include_tasks: tasks/configure-vm.yaml
+      include_tasks: tasks/configure-bakery-vm.yaml
       tags:
         - vm_configure
 
-    - name: Bake RHEL Image
+    - name: Download latest RHEL Image
       include_tasks: tasks/rhsm-api.yaml
       tags:
         - rhsm_api
+
+    - name: Bake RHEL Image and Upload to GCP
+      include_tasks: tasks/bake-gold-image.yaml
+      tags:
+        - bake_image
 
 - name: Clean up
   hosts: localhost
   tasks:
 
     - name: Delete the VM
-      include_tasks: tasks/create-vm.yaml
+      include_tasks: tasks/delete-bakery-vm.yaml
       tags:
         - vm_destroy

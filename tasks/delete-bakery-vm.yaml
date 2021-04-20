@@ -1,5 +1,14 @@
 ---
 
+- name: Delete the storage bucket
+  google.cloud.gcp_storage_bucket:
+    name: "{{ gcp_target_bucket }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_cred_kind }}"
+    service_account_file: "{{ service_account_file }}"
+    state: absent
+  when: destroy_bucket_on_cleanup|bool
+
 - name: Delete the firewall
   google.cloud.gcp_compute_firewall:
     name: "{{ firewall_name }}"

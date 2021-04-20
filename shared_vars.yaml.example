@@ -1,12 +1,24 @@
 gcp_project: gcp-rhel-gold-image-bakery
 gcp_cred_kind: serviceaccount
 service_account_file: gcp-creds.json
-gcp_target_bucket: rhel-gold-images-v2021
 
+# Needed to access the RHSM API and download the RHEL Image - generate from here: https://access.redhat.com/management/api
 rhsm_api_offline_token: YourOfflineToken
+
+# Root password for baked gold image - you can disable it in post-system provisioning
+gold_image_root_password: someSecurePassword
+
+# Target Bucket name needs to be unique!  Can exist or not
+gcp_target_bucket: "rhel-gold-images-v{{ ansible_date_time.date }}"
+# Do you want to destroy the after the image 
+destroy_bucket_on_cleanup: true
+# This allows for running the job multiple times in a single day, based on the default configured GCP Target Bucket and source RHEL Image fileame
+destroy_vm_image_and_replace: true
 
 # Find images by running `gcloud compute images | grep 'rhel'`
 image_base: projects/rhel-cloud/global/images/rhel-8-v20210316
+# Bakery Disk Size, in GB
+vm_disk_size: 30
 
 #### Probably don't need to edit these vars down here
 

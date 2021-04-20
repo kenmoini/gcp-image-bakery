@@ -9,6 +9,12 @@
     name: ['libguestfs', 'libguestfs-tools']
     state: latest
 
+- name: Start Libvirtd
+  service:
+    name: libvirtd
+    state: started
+    enabled: yes
+
 # Needed by the Ansible collection for messing with Storage Buckets
 #- name: Install google-cloud-storage Python package
 #  pip:
