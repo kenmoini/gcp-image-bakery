@@ -6,7 +6,23 @@ This repository uses GCP to create a RHEL Gold Image and deposits it into GCP - 
 
 ## How It Works
 
-1. With the 
+With the proper input (GCP SA, RHSM API Key, etc) the `gcp-image-bakery.yaml` Playbook will:
+
+1. Create a Storage Bucket if the specified bucket does not exist (optionally can skip deletion of bucket on Playbook completion)
+2. Create an ephemeral VPC in GCP
+3. Create a VM with Nested Virtualization enabled (the Bakery VM)
+4. Configure the Bakery VM with Libvirt and Guestfish, start Libvirt
+5. Download the RHEL KVM Guest Image from Red Hat's CDN via API requests
+6. Set the initial root password of the image, convert to needed format for use in GCP
+7. Upload to GCP Storage Bucket, import as new Compute Disk Image
+
+You could by all means stop right here with this RHEL Base Image, but you don't have access to all the key features of Compute Engine - plus, what if you want to include other things such as agents and other authentication means in your Gold Image?
+
+From this point the Playbook will:
+
+8. Create a new VM (the Gold Image Smelter VM) in the same VPC, built from the RHEL Base Image that was just created
+9. Connect to the Smelter VM, configure as needed, finalize by sealing the VM and adding GCP Compute Engine configuration
+10. Shut down the Smelter VM, convert to a VM Template
 
 ## Prerequiste Setup
 
@@ -38,16 +54,10 @@ ansible-galaxy install -r collections/requirements.yml
 
 ---
 
-## Creating the RHEL Gold Image
+## Usage
 
 ```bash
 ansible-playbook -e "@shared_vars.yaml" gcp-image-bakery.yaml
-```
-
-## Delete the Bakery
-
-```bash
-ansible-playbook -e "@shared_vars.yaml" destroy-nested-virt-vm.yaml
 ```
 
 ## Available Tags
@@ -63,3 +73,7 @@ Listed in order of execution:
 - `gold_configure` - Will apply configuration to the booted Base Image VM which will be used to create the final Gold Image
 - `gold_destroy` - Safe to skip if you want to keep the Gold Image VM and associated VPC resources online
 - `vm_destroy` - Safe to skip if you want to keep the Bakery VM and associated VPC resources online - will fail if Gold Image VM resources aren't deleted first
+
+## TODO
+
+- Explore other options of providing authentication to the GCP modules
