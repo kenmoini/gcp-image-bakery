@@ -10,6 +10,7 @@ gold_image_root_password: someSecurePassword
 
 # Target Bucket name needs to be unique!  Can exist or not
 gcp_target_bucket: "rhel-gold-images-v{{ ansible_date_time.date }}"
+rhel_base_image_name: rhel-v{{ ansible_date_time.date }}-base
 # Do you want to destroy the after the image 
 destroy_bucket_on_cleanup: true
 # This allows for running the job multiple times in a single day, based on the default configured GCP Target Bucket and source RHEL Image fileame
@@ -19,6 +20,13 @@ destroy_vm_image_and_replace: true
 image_base: projects/rhel-cloud/global/images/rhel-8-v20210316
 # Bakery Disk Size, in GB
 vm_disk_size: 30
+
+# If `create_gold_smelter_vm_and_configure` is set to true, once the Base Image is created, a VM will be made from that so it can be configured further to create a final Gold Image
+create_gold_smelter_vm_and_configure: true
+gold_smelter_static_ip_name: eph-gold-smelter-ip
+gold_smelter_vm_name: eph-gold-smelter-vm
+gold_smelter_vm_size: n1-standard-1
+gold_smelter_disk_name: eph-gold-smelter-disk
 
 #### Probably don't need to edit these vars down here
 

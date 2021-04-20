@@ -50,13 +50,13 @@
 
 - name: Delete the previous VM Disk Image
   command:
-    cmd: "gcloud compute images delete rhel-v{{ ansible_date_time.date }}-gold --quiet"
+    cmd: "gcloud compute images delete {{ rhel_base_image_name }} --quiet"
   when: destroy_vm_image_and_replace|bool
   ignore_errors: true
 
 - name: Create the VM Disk Image
   command:
-    cmd: "gcloud compute images create rhel-v{{ ansible_date_time.date }}-gold --source-uri gs://{{ gcp_target_bucket }}/disk.raw.tar.gz"
+    cmd: "gcloud compute images create {{ rhel_base_image_name }} --source-uri gs://{{ gcp_target_bucket }}/disk.raw.tar.gz"
 
 #- name: Create new VM Image
 #  google.cloud.gcp_compute_image:

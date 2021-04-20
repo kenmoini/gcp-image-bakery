@@ -1,0 +1,27 @@
+---
+- name: Delete the RHEL8 instance
+  gcp_compute_instance:
+    name: "{{ gold_smelter_vm_name }}"
+    zone: "{{ gcp_zone }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_cred_kind }}"
+    service_account_file: "{{ service_account_file }}"
+    state: absent
+
+- name: Delete the IPv4 public IP Address
+  gcp_compute_address:
+    name: "{{ gold_smelter_static_ip_name }}"
+    region: "{{ gcp_region }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_cred_kind }}"
+    service_account_file: "{{ service_account_file }}"
+    state: absent
+
+- name: Delete the disk mapped from RHEL8 image
+  gcp_compute_disk:
+    name: "{{ gold_smelter_disk_name }}"
+    zone: "{{ gcp_zone }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_cred_kind }}"
+    service_account_file: "{{ service_account_file }}"
+    state: absent
