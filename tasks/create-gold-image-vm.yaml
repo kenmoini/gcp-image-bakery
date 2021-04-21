@@ -4,7 +4,7 @@
   gcp_compute_disk:
     name: "{{ gold_smelter_disk_name }}"
     size_gb: "{{ vm_disk_size }}"
-    source_image: "{{ rhel_base_image_name }}"
+    source_image: "projects/{{ gcp_project }}/global/images/{{ rhel_base_image_name }}"
     zone: "{{ gcp_zone }}"
     project: "{{ gcp_project }}"
     auth_kind: "{{ gcp_cred_kind }}"
@@ -36,7 +36,7 @@
       subnetwork: "{{ subnetwork }}"
       access_configs:
       - name: External NAT
-        nat_ip: "{{ address }}"
+        nat_ip: "{{ gold_smelter_address }}"
         type: ONE_TO_ONE_NAT
     tags:
       items:
@@ -58,9 +58,13 @@
     hostname: "{{ gold_smelter_address.address }}"
     groupname: gold_smelter_instance
     ansible_ssh_user: root
-    ansible_ssh_password: 
+    ansible_ssh_password: "{{ gold_image_root_password }}"
     ansible_ssh_common_args: -o StrictHostKeyChecking=no
     ansible_ssh_extra_args: -o StrictHostKeyChecking=no
+
+- name: Delete the entry from known_hosts for good measure
+  command: "ssh-keygen -f ~/.ssh/known_hosts -R '{{ gold_smelter_address.address }}'"
+  ignore_errors: true
 
 - name: Show RHEL8 Gold Smelter Instance Details
   debug:

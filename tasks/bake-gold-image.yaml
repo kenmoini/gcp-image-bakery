@@ -3,10 +3,62 @@
   command:
     cmd: "/bin/virt-customize -a /opt/{{ imageList | json_query(imageFileName) | first }} --root-password password:{{ gold_image_root_password }}"
 
+- name: Create dropbox directory for files to bake into image
+  file:
+    path: /opt/.dropbox
+    state: directory
+
+- name: Copy over configuration files
+  copy:
+    src: "{{ item }}"
+    dest: /opt/.dropbox/
+  with_items:
+    - files/chrony.conf
+    - files/google-cloud.repo
+
+- name: Set permissions on root_authorized_keys
+  file:
+    path: /opt/.dropbox/root_authorized_keys
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Add authorized_key to root user
+  template:
+    src: root_authorized_keys
+    dest: /opt/.dropbox/root_authorized_keys
+
+- name: Configure Chrony to use GCP NTP servers
+  command:
+    cmd: "virt-copy-in -a /opt/{{ imageList | json_query(imageFileName) | first }} /opt/.dropbox/chrony.conf /etc/"
+
+# For some reason, this doesn't take hold?  I think some first-boot config resets it...
+#- name: Configure SSHd to allow root login and password auth - TEMPORARILY!
+#  command:
+#    cmd: "virt-copy-in -a /opt/{{ imageList | json_query(imageFileName) | first }} /opt/.dropbox/sshd_config /etc/ssh/"
+
+- name: Add Google Cloud repo
+  command:
+    cmd: "virt-copy-in -a /opt/{{ imageList | json_query(imageFileName) | first }} /opt/.dropbox/google-cloud.repo /etc/yum.repos.d/"
+
+- name: Add Google Cloud repo
+  command:
+    cmd: "virt-copy-in -a /opt/{{ imageList | json_query(imageFileName) | first }} /opt/.dropbox/root_authorized_keys /root/.ssh/"
+
+- name: Delete old RAW image file
+  file:
+    path: /opt/disk.raw
+    state: absent
+
 - name: Convert the QCOW2 to a RAW image
   command:
     cmd: "qemu-img convert -f qcow2 -O raw /opt/{{ imageList | json_query(imageFileName) | first }} /opt/disk.raw"
     creates: "/opt/disk.raw"
+
+- name: Delete old compressed RAW image file
+  file:
+    path: /opt/disk.raw.tar.gz
+    state: absent
 
 - name: Compress RAW Image
   command:
@@ -34,7 +86,12 @@
     cmd: gcloud auth activate-service-account --key-file=/opt/google-cloud-sdk/gcloud-creds.json
     creates: /root/.config/gcloud/credentials.db
 
-#- name: Upload compressed raw disk image to GCP Storage Bucket
+- name: Delete previous image from GCP Storage Bucket
+  command:
+    cmd: "/opt/google-cloud-sdk/bin/gsutil rm gs://{{ gcp_target_bucket }}/disk.raw.tar.gz"
+
+# Does not work and IDK why, some of these modules suck
+#- name: Copy image to GCP Storage Bucket
 #  google.cloud.gcp_storage_object:
 #    action: upload
 #    bucket: "{{ gcp_target_bucket }}"
@@ -58,6 +115,7 @@
   command:
     cmd: "gcloud compute images create {{ rhel_base_image_name }} --source-uri gs://{{ gcp_target_bucket }}/disk.raw.tar.gz"
 
+# Does not work and IDK why, some of these modules suck
 #- name: Create new VM Image
 #  google.cloud.gcp_compute_image:
 #    name: rhel8-gold-image
@@ -68,4 +126,3 @@
 #    auth_kind: "{{ gcp_cred_kind }}"
 #    service_account_file: /opt/google-cloud-sdk/gcloud-creds.json
 #    state: present
-#

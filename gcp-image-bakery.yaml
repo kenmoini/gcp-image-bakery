@@ -32,14 +32,20 @@
   hosts: localhost
   tasks:
 
+    - name: Delete the Gold Smelter VM, just in case
+      include_tasks: tasks/delete-gold-image-vm.yaml
+      tags:
+        - gold_destroy
+      when: create_gold_smelter_vm_and_configure|bool
+
     - name: Create the Gold Smelter VM
       include_tasks: tasks/create-gold-image-vm.yaml
       tags:
         - gold_setup
+      when: create_gold_smelter_vm_and_configure|bool
 
 - name: Frost Base Image with Gold
   hosts: gold_smelter_instance
-  become: yes
   tasks:
 
     - name: Configure the Gold Smelter VM
@@ -48,12 +54,19 @@
         - gold_configure
       when: create_gold_smelter_vm_and_configure|bool
 
+#- name: Finalize Gold Image Template
+#  hosts: localhost
+#  tasks:
+#
+#    - name: Shutdown Gold Smelter VM
+#    - name: Convert to Template
+
 - name: Clean up
   hosts: localhost
   tasks:
 
     - name: Delete the Gold Smelter VM
-      include_tasks: tasks/delete-bakery-vm.yaml
+      include_tasks: tasks/delete-gold-image-vm.yaml
       tags:
         - gold_destroy
       when: create_gold_smelter_vm_and_configure|bool

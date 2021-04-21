@@ -2,7 +2,7 @@
 
 Red Hat's Cloud Access program provides certified Gold Images to use with a Bring-Your-Own-Subscription model in AWS and Azure but not GCP - for that you'll need to bring your own image.
 
-This repository uses GCP to create a RHEL Gold Image and deposits it into GCP - inception Gold Image baking.
+This repository uses GCP to create a VM, which creates a RHEL Base Image, which is used to create another VM, which is then configured to be the RHEL Gold Image, and deposits that VM as a Template into GCP for use with your own subscriptions via Red Hat Cloud Access - inception Gold Image baking!
 
 ## How It Works
 
@@ -69,6 +69,7 @@ Listed in order of execution:
 - `wait_for_ssh` - Safe to skip on subsequent runs of the playbook once the VMs have been stood up
 - `rhsm_api` - This interacts with the Red Hat Subscription Manager API and downloads the RHEL KVM image
 - `bake_image` - The tasks tagged with this will take the Gold Image on the Bakery VM and create the VM Disk Image in GCP
+- `gold_destroy` - Safe to skip if you want to keep the Gold Image VM and associated VPC resources online
 - `gold_setup` - This tag controls the tasks that create a VM from the created Base Image
 - `gold_configure` - Will apply configuration to the booted Base Image VM which will be used to create the final Gold Image
 - `gold_destroy` - Safe to skip if you want to keep the Gold Image VM and associated VPC resources online
