@@ -79,6 +79,10 @@ Listed in order of execution:
 - `gold_destroy` - Safe to skip if you want to keep the Gold Image VM and associated VPC resources online
 - `vm_destroy` - Safe to skip if you want to keep the Bakery VM and associated VPC resources online - will fail if Gold Image VM resources aren't deleted first
 
+## Adding Gold Image Customizations
+
+If you'd like to add extra customizations to the final Gold Image, you can add your Tasks to the main `gcp-image-bakery.yaml` Playbook between the `Configure the Gold Smelter VM` and the `Shutdown the Gold Smelter VM` tasks
+
 ## TODO
 
 - Explore other options of providing authentication to the GCP modules
