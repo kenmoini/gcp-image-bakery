@@ -124,4 +124,5 @@
     - /etc/udev/rules.d/70-*
     - /var/lib/dbus/machine-id
     - /etc/rhsm/facts/katello.facts
+    - /root/.ssh/authorized_keys
     - /var/log/*
