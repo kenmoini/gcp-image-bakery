@@ -58,6 +58,8 @@ ansible-galaxy install -r collections/requirements.yml
 
 ```bash
 ansible-playbook -e "@shared_vars.yaml" gcp-image-bakery.yaml
+# to destroy:
+ansible-playbook -e "@shared_vars.yaml" --skip-tags=vm_setup,base_play,gold_recycle,gold_smelter gcp-image-bakery.yaml
 ```
 
 ## Available Tags

@@ -11,6 +11,8 @@
 - name: Bake up an image
   hosts: bakery_instance
   become: yes
+  tags:
+    - bake_base_play
   tasks:
 
     - name: Configure the VM
@@ -30,6 +32,8 @@
 
 - name: Create a RHEL Base Image VM to Configure into the final Gold Image
   hosts: localhost
+  tags:
+    - gold_recycle
   tasks:
 
     - name: Delete the Gold Smelter VM, just in case
@@ -46,6 +50,8 @@
 
 - name: Frost Base Image with Gold
   hosts: gold_smelter_instance
+  tags:
+    - gold_smelter
   tasks:
 
     - name: Configure the Gold Smelter VM

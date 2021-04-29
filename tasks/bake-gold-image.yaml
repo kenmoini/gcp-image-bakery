@@ -16,17 +16,17 @@
     - files/chrony.conf
     - files/google-cloud.repo
 
-- name: Set permissions on root_authorized_keys
-  file:
-    path: /opt/.dropbox/root_authorized_keys
-    owner: root
-    group: root
-    mode: 0600
+#- name: Add authorized_key to root user
+#  template:
+#    src: root_authorized_keys.j2
+#    dest: /opt/.dropbox/root_authorized_keys
 
-- name: Add authorized_key to root user
-  template:
-    src: root_authorized_keys
-    dest: /opt/.dropbox/root_authorized_keys
+#- name: Set permissions on root_authorized_keys
+#  file:
+#    path: /opt/.dropbox/root_authorized_keys
+#    owner: root
+#    group: root
+#    mode: 0600
 
 - name: Configure Chrony to use GCP NTP servers
   command:
@@ -41,9 +41,15 @@
   command:
     cmd: "virt-copy-in -a /opt/{{ imageList | json_query(imageFileName) | first }} /opt/.dropbox/google-cloud.repo /etc/yum.repos.d/"
 
-- name: Add Google Cloud repo
+- name: Template Guestfish interactive script
+  template:
+    src: base_guestfish_script.sh.j2
+    dest: /opt/base_guestfish_script.sh
+    mode: 0755
+
+- name: Run Guestfish Interactive script
   command:
-    cmd: "virt-copy-in -a /opt/{{ imageList | json_query(imageFileName) | first }} /opt/.dropbox/root_authorized_keys /root/.ssh/"
+    cmd: "bash /opt/base_guestfish_script.sh"
 
 - name: Delete old RAW image file
   file:
@@ -89,6 +95,7 @@
 - name: Delete previous image from GCP Storage Bucket
   command:
     cmd: "/opt/google-cloud-sdk/bin/gsutil rm gs://{{ gcp_target_bucket }}/disk.raw.tar.gz"
+  ignore_errors: true
 
 # Does not work and IDK why, some of these modules suck
 #- name: Copy image to GCP Storage Bucket
