@@ -23,6 +23,7 @@ From this point the Playbook will:
 8. Create a new VM (the Gold Image Smelter VM) in the same VPC, built from the RHEL Base Image that was just created
 9. Connect to the Smelter VM, configure basics as needed, finalize by sealing the VM and adding GCP Compute Engine configuration
 10. Shut down the Smelter VM, convert to a VM Snapshot, then a Compute Disk Image which will be the final Gold Image
+11. Clean up after itself, only leaving the Base and Gold Images behind as Compute Disk Images
 
 ## Prerequiste Setup
 
