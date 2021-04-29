@@ -2,6 +2,13 @@
 - name: Create a RHEL Gold Image for GCP, in GCP!
   hosts: localhost
   tasks:
+    # Needed by the Ansible collection for messing with Storage Buckets
+    - name: Install google-cloud-storage Python package
+      pip:
+        name: google-cloud-storage
+        executable: pip3
+      tags:
+        - local_pip_gcp_storage
 
     - name: Create the VM
       include_tasks: tasks/create-bakery-vm.yaml
@@ -52,6 +59,11 @@
   hosts: gold_smelter_instance
   tags:
     - gold_smelter
+
+  handlers:
+    - name: Include handlers
+      include_tasks: handlers/main.yaml
+
   tasks:
 
     - name: Configure the Gold Smelter VM

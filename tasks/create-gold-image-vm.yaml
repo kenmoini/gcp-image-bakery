@@ -51,14 +51,14 @@
 - name: Wait for SSH to come up
   wait_for: host={{ gold_smelter_address.address }} port=22 delay=30 timeout=120
   tags:
-    - wait_for_ssh
+    - wait_for_gold_ssh
 
 - name: Add host to gold_smelter_instance
   add_host:
     hostname: "{{ gold_smelter_address.address }}"
     groupname: gold_smelter_instance
     ansible_ssh_user: root
-    ansible_ssh_password: "{{ gold_image_root_password }}"
+    ansible_ssh_private_key_file: "{{ temporary_path }}/id_rsa"
     ansible_ssh_common_args: -o StrictHostKeyChecking=no
     ansible_ssh_extra_args: -o StrictHostKeyChecking=no
 

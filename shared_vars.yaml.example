@@ -5,6 +5,17 @@ service_account_file: gcp-creds.json
 # Needed to access the RHSM API and download the RHEL Image - generate from here: https://access.redhat.com/management/api
 rhsm_api_offline_token: YourOfflineToken
 
+# RH Subscription credentials are still needed because uhhhhhgggggnnnnnn...WHY DOES RED HAT HATE ME?!?
+subscription_manager_username: yourRHN@example.com
+subscription_manager_password: verySecretPass
+subscription_manager_auto_attach: true
+# subscription_manager_pool_ids:
+## If using Satellite uncomment these and comment the 4 lines above
+# subscription_manager_activation_key:
+# subscription_manager_organization_id:
+# subscription_manager_pool: '^Red Hat Enterprise Server$'
+# subscription_manager_endpoint:
+
 # Root password for baked gold image - you can disable it in post-system provisioning
 gold_image_root_password: someSecurePassword
 
@@ -27,6 +38,18 @@ gold_smelter_static_ip_name: eph-gold-smelter-ip
 gold_smelter_vm_name: eph-gold-smelter-vm
 gold_smelter_vm_size: n1-standard-1
 gold_smelter_disk_name: eph-gold-smelter-disk
+
+gold_smelter_repos:
+  - rhel-8-for-x86_64-baseos-rpms
+  - rhel-8-for-x86_64-appstream-rpms
+
+gold_smelter_packages:
+  - initial-setup
+  - python3-google-compute-engine
+  - google-guest-agent
+  - google-compute-engine
+  - google-compute-engine-oslogin
+  - gce-disk-expand
 
 #### Probably don't need to edit these vars down here
 

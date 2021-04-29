@@ -1,14 +1,50 @@
 ---
-# Seal the VM and do custom configuration
-- name: Create the /.unconfigured file
-  file:
-    path: /.unconfigured
-    state: touch
+# Seal the VM and do custom configuration - mix of:
+## https://cloud.google.com/compute/docs/import/configuring-imported-images
+## https://github.com/juju4/ansible-ipv6/blob/master/tasks/ipv6-disable.yml
+## https://access.redhat.com/solutions/2271601
+## https://github.com/GoogleCloudPlatform/compute-image-packages
 
-- name: Remove any host keys
-  file:
-    path: /etc/ssh/ssh_host_*
-    state: absent
+- name: Register RHEL system with UN/PW and auto attach
+  community.general.redhat_subscription:
+    state: present
+    username: "{{ subscription_manager_username }}"
+    password: "{{ subscription_manager_password }}"
+    auto_attach: "{{ subscription_manager_auto_attach }}"
+  when: subscription_manager_username is defined and subscription_manager_auto_attach|bool
+
+- name: Register RHEL system with UN/PW and a specific pool
+  community.general.redhat_subscription:
+    state: present
+    username: "{{ subscription_manager_username }}"
+    password: "{{ subscription_manager_password }}"
+    pool_ids: "{{ subscription_manager_pool_ids }}"
+  when: subscription_manager_username is defined and subscription_manager_pool_ids is defined and not subscription_manager_auto_attach|bool
+
+- name: Register RHEL system with Activation Key combo
+  community.general.redhat_subscription:
+    state: present
+    activationkey: "{{ subscription_manager_username }}"
+    org_id: "{{ subscription_manager_password }}"
+    pool: "{{ subscription_manager_pool }}"
+  when: subscription_manager_activation_key is defined and subscription_manager_pool is defined
+
+- name: Enable repositories
+  community.general.rhsm_repository:
+    name: "{{ item }}"
+    state: enabled
+  with_items: "{{ gold_smelter_repos }}"
+
+- name: Update system to latest packages
+  dnf:
+    name: '*'
+    state: latest
+
+- name: Install needed packages to run in GCP
+  dnf:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ gold_smelter_packages }}"
 
 - name: Reset the hostname file
   copy:
@@ -16,16 +52,9 @@
     content: |
       localhost.localdomain
 
-- name: Remove any device rules
-  file:
-    path: /etc/udev/rules.d/70-*
-    state: absent
-
-- name: Remove any log files
-  file:
-    path: /var/log/*
-    state: absent
-
+- name: Set timezone to UTC
+  command:
+    cmd: ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 
 - name: Disable IPv6 with sysctl
   sysctl: name={{ item }} value=1 state=present reload=yes
@@ -34,27 +63,14 @@
     - net.ipv6.conf.default.disable_ipv6
     - net.ipv6.conf.lo.disable_ipv6
 
-- name: Debian | blacklist ipv6 in modprobe
-  lineinfile:
-    dest: /etc/modprobe.d/blacklist.conf
-    line: 'blacklist ipv6'
-    mode: '0644'
-    create: yes
-  notify:
-    - rmmodipv6
-  when: ansible_os_family == 'Debian'
-
-- name: RedHat | placeholder true for ipv6 in modprobe
+- name: Placeholder true for ipv6 in modprobe
   lineinfile:
     dest: /etc/modprobe.conf
     line: 'install ipv6 /bin/true'
     mode: '0644'
     create: yes
-  notify:
-    - rmmodipv6
-  when: ansible_os_family == 'RedHat'
 
-- name: RedHat | disable ipv6 in sysconfig/network
+- name: Disable ipv6 in sysconfig/network
   lineinfile:
     dest: /etc/sysconfig/network
     regexp: "^{{ item.regexp }}"
@@ -65,7 +81,51 @@
   with_items:
     - { regexp: 'NETWORKING_IPV6=.*', line: 'NETWORKING_IPV6=NO' }
     - { regexp: 'IPV6INIT=.*', line: 'IPV6INIT=no' }
-  notify:
-    - restart network
-    - restart NetworkManager
-  when: ansible_os_family == 'RedHat'
+
+- name: Remove network identification in sysconfig/network
+  lineinfile:
+    dest: /etc/sysconfig/network-scripts/ifcfg-eth0
+    regexp: "^{{ item.regexp }}"
+    line: "{{ item.line }}"
+    mode: '0644'
+    backup: yes
+    create: yes
+  with_items:
+    - { regexp: 'HWADDR=.*', line: '' }
+    - { regexp: 'UUID=.*', line: '' }
+
+- name: Enable initial-setup
+  service:
+    name: initial-setup
+    enabled: yes
+
+- name: Unregister system
+  command:
+    cmd: subscription-manager unregister
+
+- name: Remove subscription
+  command:
+    cmd: subscription-manager remove --all
+
+- name: Clean subscription-manager
+  command:
+    cmd: subscription-manager clean
+
+- name: Create the /.unconfigured file
+  file:
+    path: /.unconfigured
+    state: touch
+
+- name: Remove files
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/ssh/ssh_host_*
+    - /etc/udev/rules.d/70-*
+    - /var/lib/dbus/machine-id
+    - /etc/rhsm/facts/katello.facts
+    - /var/log/*
+
+- name: Shutdown the Gold Smelter
+  community.general.shutdown:
