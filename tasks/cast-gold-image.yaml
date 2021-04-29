@@ -41,12 +41,14 @@
     service_account_file: "{{ service_account_file }}"
     state: present
 
-- name: Delete the previous Gold Image VM Disk Image
-  command:
-    cmd: "gcloud compute images delete {{ rhel_gold_image_name }} --quiet"
-  when: destroy_vm_image_and_replace|bool
+- name: Delete snapshot to free resources
+  google.cloud.gcp_compute_snapshot:
+    name: "{{ gold_smelter_snapshot_name }}"
+    source_disk: 
+      name: "{{ gold_smelter_snapshot_name }}"
+    zone: "{{ gcp_zone }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_cred_kind }}"
+    service_account_file: "{{ service_account_file }}"
+    state: absent
   ignore_errors: true
-
-#- name: Create the Gold Image VM Disk Image
-#  command:
-#    cmd: "gcloud compute images create {{ rhel_gold_image_name }} --source-snapshot={{ gold_smelter_snapshot_name }}"
