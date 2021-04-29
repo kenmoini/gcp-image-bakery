@@ -2,7 +2,7 @@
 
 Red Hat's Cloud Access program provides certified Gold Images to use with a Bring-Your-Own-Subscription model in AWS and Azure but not GCP - for that you'll need to bring your own image.
 
-This repository uses GCP to create a VM, which creates a RHEL Base Image, which is used to create another VM, which is then configured to be the RHEL Gold Image, and deposits that VM as a Template into GCP for use with your own subscriptions via Red Hat Cloud Access - inception Gold Image baking!
+This repository uses GCP to create a VM, which creates a RHEL Base Image, which is used to create another VM, which is then configured to be the RHEL Gold Image, and deposits that VM as a Compute Disk Image into GCP for use with your own subscriptions via Red Hat Cloud Access - inception Gold Image baking!
 
 ## How It Works
 
