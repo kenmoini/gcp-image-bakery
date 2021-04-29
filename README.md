@@ -59,13 +59,14 @@ ansible-galaxy install -r collections/requirements.yml
 ```bash
 ansible-playbook -e "@shared_vars.yaml" gcp-image-bakery.yaml
 # to destroy:
-ansible-playbook -e "@shared_vars.yaml" --skip-tags=vm_setup,base_play,gold_recycle,gold_smelter gcp-image-bakery.yaml
+ansible-playbook -e "@shared_vars.yaml" --skip-tags=vm_setup,base_play,gold_recycle,gold_smelter,gold_casting gcp-image-bakery.yaml
 ```
 
 ## Available Tags
 
 Listed in order of execution:
 
+- `local_pip_gcp_storage` - This runs locally to ensure the needed PIP modules are loaded for interacting with GCP Cloud Storage
 - `vm_setup` - This needs to be run or else the `bakery_instance` group isn't made which the following Plays rely on
 - `vm_configure` - Safe to skip on subsequent runs of the playbook, targets package management
 - `wait_for_ssh` - Safe to skip on subsequent runs of the playbook once the VMs have been stood up

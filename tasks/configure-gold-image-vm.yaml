@@ -31,9 +31,8 @@
 
 - name: Enable repositories
   community.general.rhsm_repository:
-    name: "{{ item }}"
+    name: "{{ gold_smelter_repos }}"
     state: enabled
-  with_items: "{{ gold_smelter_repos }}"
 
 - name: Update system to latest packages
   dnf:
@@ -126,6 +125,3 @@
     - /var/lib/dbus/machine-id
     - /etc/rhsm/facts/katello.facts
     - /var/log/*
-
-- name: Shutdown the Gold Smelter
-  community.general.shutdown:

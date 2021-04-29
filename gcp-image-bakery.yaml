@@ -59,11 +59,6 @@
   hosts: gold_smelter_instance
   tags:
     - gold_smelter
-
-  handlers:
-    - name: Include handlers
-      include_tasks: handlers/main.yaml
-
   tasks:
 
     - name: Configure the Gold Smelter VM
@@ -72,12 +67,27 @@
         - gold_configure
       when: create_gold_smelter_vm_and_configure|bool
 
-#- name: Finalize Gold Image Template
-#  hosts: localhost
-#  tasks:
-#
-#    - name: Shutdown Gold Smelter VM
-#    - name: Convert to Template
+    ###############################################################
+    ## You can do extra configuration of your Gold Base Image here
+    ###############################################################
+
+    - name: Shutdown the Gold Smelter VM
+      include_tasks: tasks/shutdown-gold-vm.yaml
+      tags:
+        - gold_shutdown
+      when: create_gold_smelter_vm_and_configure|bool
+
+- name: Finalize Gold Image Template
+  hosts: localhost
+  tags:
+    - gold_casting
+  tasks:
+
+    - name: Convert to Gold Smelter to Storage Disk Image
+      include_tasks: tasks/cast-gold-image.yaml
+      tags:
+        - cast_gold_image
+      when: create_gold_smelter_vm_and_configure|bool
 
 - name: Clean up
   hosts: localhost
