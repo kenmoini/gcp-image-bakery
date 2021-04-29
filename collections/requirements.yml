@@ -1,3 +1,4 @@
 collections:
-- google.cloud
 - community.crypto
+- community.general
+- google.cloud

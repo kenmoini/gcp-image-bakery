@@ -7,8 +7,6 @@
     project: "{{ gcp_project }}"
     auth_kind: "{{ gcp_cred_kind }}"
     service_account_file: "{{ service_account_file }}"
-  #command:
-  #  cmd: "/opt/google-cloud-sdk/bin/gsutil rm gs://{{ gcp_target_bucket }}/disk.raw.tar.gz"
   ignore_errors: true
 
 - name: Delete the storage bucket
